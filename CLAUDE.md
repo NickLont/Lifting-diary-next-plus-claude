@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **lifting diary** application built with Next.js 16.1.6, React 19, TypeScript, and Tailwind CSS v4. The project uses Clerk for authentication.
 
 **Requirements:**
-- Node.js >= 20.9.0 (required by Next.js 16)
+- Node.js 22 (see `.nvmrc` for version management)
 
 ## Development Commands
 
@@ -57,8 +57,12 @@ npm run lint:fix
 - Font variables defined in root layout: `--font-geist-sans` and `--font-geist-mono`
 
 ### Authentication
-- Clerk is installed (`@clerk/nextjs`) but not yet configured
-- When implementing, wrap root layout with `<ClerkProvider>` and add middleware for route protection
+- **Clerk** (`@clerk/nextjs`) is configured in `app/layout.tsx` with `ClerkProvider`
+- Environment variables required in `.env.local`:
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Get from Clerk dashboard
+  - `CLERK_SECRET_KEY` - Get from Clerk dashboard
+- See `.env.example` for full configuration template
+- Conditional rendering components: `<SignedIn>`, `<SignedOut>`, `<Protect>`
 
 ## Key Files
 
