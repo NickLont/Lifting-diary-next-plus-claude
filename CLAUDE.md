@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Important: Code Generation Guidelines
+
+**CRITICAL:** This project has code generation guidelines in the `/docs` directory. You MUST always follow these guidelines when writing or modifying code. These guidelines define the patterns, conventions, and best practices that must be applied to all code in this project.
+
+## Development Workflow
+
+**Auto-fix linting after code changes:**
+- After creating or modifying any code files, you MUST run `npm run lint:fix` on the affected files
+- This ensures all code adheres to the project's linting standards (neostandard)
+- Use: `npm run lint:fix -- <file-path>` for specific files
+
 ## Project Overview
 
 This is a **lifting diary** application built with Next.js 16.1.6, React 19, TypeScript, and Tailwind CSS v4. The project uses Clerk for authentication.
