@@ -4,14 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Important: Code Generation Guidelines
 
-**CRITICAL:** This project has code generation guidelines in the `/docs` directory. You MUST always follow these guidelines when writing or modifying code. These guidelines define the patterns, conventions, and best practices that must be applied to all code in this project.
+**CRITICAL:** This project has detailed code generation guidelines in the `/docs` directory. You MUST always follow these guidelines when writing or modifying code.
+
+**Required reading before writing code:**
+- **`/docs/ui.md`** - UI component standards (shadcn/ui only, no custom components, Tailwind CSS)
+- **`/docs/data-fetching.md`** - Data fetching patterns (Server Components only, data layer in `/data`, Drizzle ORM, user isolation)
 
 ## Development Workflow
 
-**Auto-fix linting after code changes:**
-- After creating or modifying any code files, you MUST run `npm run lint:fix` on the affected files
-- This ensures all code adheres to the project's linting standards (neostandard)
-- Use: `npm run lint:fix -- <file-path>` for specific files
+**CRITICAL - Code quality checks after changes:**
+1. **TypeScript check:** Run `npx tsc --noEmit` to verify types are correct
+2. **Linting:** Run `npm run lint:fix` on the affected files to ensure code style compliance
+   - Use: `npm run lint:fix -- <file-path>` for specific files
+   - If linter configuration has issues, ensure TypeScript check passes at minimum
+3. These checks should NEVER be skipped before committing code
 
 ## Project Overview
 
@@ -56,6 +62,16 @@ npm run lint:fix
 - Path alias configured: `@/*` maps to the root directory
 - Strict mode enabled
 - Target: ES2017
+- **CRITICAL:** ALWAYS use `import type` when importing TypeScript types, interfaces, or type aliases
+  ```typescript
+  // ✅ CORRECT
+  import type { User } from '@/types/user'
+  import type { WorkoutWithRelations } from '@/data/workouts'
+
+  // ❌ WRONG
+  import { User } from '@/types/user'
+  import { WorkoutWithRelations } from '@/data/workouts'
+  ```
 
 ### Linting
 - **ESLint 9** with flat config (`eslint.config.mjs`)

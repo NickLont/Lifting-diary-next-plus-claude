@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { WorkoutWithRelations } from '@/app/db/queries'
+import type { WorkoutWithRelations } from '@/data/workouts'
 import { format } from 'date-fns'
 
 interface WorkoutCardProps {

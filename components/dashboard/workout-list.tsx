@@ -1,4 +1,4 @@
-import { WorkoutWithRelations } from '@/app/db/queries'
+import type { WorkoutWithRelations } from '@/data/workouts'
 import { WorkoutCard } from './workout-card'
 import { ExerciseCard } from './exercise-card'
 import { EmptyState } from './empty-state'

@@ -1,17 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-
-interface ExerciseSet {
-  id: number
-  reps: number
-  weight: number | null
-  completed: boolean
-}
+import type { Set } from '@/app/db/schema'
 
 interface Exercise {
   id: number
   name: string
-  sets: ExerciseSet[]
+  sets: Set[]
 }
 
 interface ExerciseCardProps {
@@ -45,10 +39,12 @@ export function ExerciseCard ({ exercise }: ExerciseCardProps) {
             >
               <span className='font-medium'>Set {index + 1}</span>
               <div className='flex gap-4'>
-                <span>
-                  <span className='text-muted-foreground'>Reps:</span>{' '}
-                  <span className='font-semibold'>{set.reps}</span>
-                </span>
+                {set.reps && (
+                  <span>
+                    <span className='text-muted-foreground'>Reps:</span>{' '}
+                    <span className='font-semibold'>{set.reps}</span>
+                  </span>
+                )}
                 {set.weight && (
                   <span>
                     <span className='text-muted-foreground'>Weight:</span>{' '}

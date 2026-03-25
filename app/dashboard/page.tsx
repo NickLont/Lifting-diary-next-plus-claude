@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { DateSelector } from '@/components/dashboard/date-selector'
 import { WorkoutList } from '@/components/dashboard/workout-list'
 import { ErrorState } from '@/components/dashboard/error-state'
-import { getWorkoutsByDateAndUser } from '@/app/db/queries'
+import { getUserWorkoutsByDate } from '@/data/workouts'
 import { parseDate, getTodayString } from '@/lib/date-utils'
 
 interface PageProps {
@@ -29,7 +29,7 @@ export default async function DashboardPage ({ searchParams }: PageProps) {
   // Fetch workouts with error handling
   let workouts
   try {
-    workouts = await getWorkoutsByDateAndUser(userId, selectedDate)
+    workouts = await getUserWorkoutsByDate(selectedDate)
   } catch (error) {
     console.error('Failed to fetch workouts:', error)
     return (
