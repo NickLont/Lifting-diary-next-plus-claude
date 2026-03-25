@@ -12,12 +12,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Workflow
 
+**CRITICAL - Node.js Version:**
+- **ALWAYS run `nvm use` before executing ANY bash commands** (npm, npx, node, etc.)
+- This project requires Node.js 22 (specified in `.nvmrc`)
+- Running commands with the wrong Node version will cause dependency and build errors
+
 **CRITICAL - Code quality checks after changes:**
 1. **TypeScript check:** Run `npx tsc --noEmit` to verify types are correct
 2. **Linting:** Run `npm run lint:fix` on the affected files to ensure code style compliance
    - Use: `npm run lint:fix -- <file-path>` for specific files
    - If linter configuration has issues, ensure TypeScript check passes at minimum
-3. These checks should NEVER be skipped before committing code
+3. **Check for deprecation warnings:** After running dev server or build, check console for deprecation warnings
+4. These checks should NEVER be skipped before committing code
+
+**Component Usage Guidelines:**
+- Before using any shadcn/ui component, check the latest documentation at https://ui.shadcn.com/docs/components
+- Check the underlying library's documentation (e.g., react-day-picker for Calendar)
+- Look for TypeScript @deprecated tags in component prop types
+- Test components after installation to catch deprecation warnings early
 
 ## Project Overview
 
@@ -28,6 +40,13 @@ This is a **lifting diary** application built with Next.js 16.1.6, React 19, Typ
 
 ## Development Commands
 
+**Always run first:**
+```bash
+# Switch to correct Node.js version
+nvm use
+```
+
+**Then run any of these:**
 ```bash
 # Start development server (http://localhost:3000)
 npm run dev

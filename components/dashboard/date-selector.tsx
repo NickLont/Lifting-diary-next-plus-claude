@@ -36,7 +36,6 @@ export function DateSelector ({ currentDate }: DateSelectorProps) {
           mode='single'
           selected={currentDate}
           onSelect={handleDateSelect}
-          initialFocus
         />
       </PopoverContent>
     </Popover>
