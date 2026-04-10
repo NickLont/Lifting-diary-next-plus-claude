@@ -17,7 +17,7 @@ type Props = {
   onSubmit: (input: CreateWorkoutInput) => Promise<void>
 }
 
-export function CreateWorkoutForm ({ onSubmit }: Props) {
+export const CreateWorkoutForm = ({ onSubmit }: Props) => {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [name, setName] = useState('')
@@ -26,7 +26,7 @@ export function CreateWorkoutForm ({ onSubmit }: Props) {
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit (e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
 

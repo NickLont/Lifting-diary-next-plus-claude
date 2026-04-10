@@ -12,7 +12,7 @@ interface ExerciseCardProps {
   exercise: Exercise
 }
 
-export function ExerciseCard ({ exercise }: ExerciseCardProps) {
+export const ExerciseCard = ({ exercise }: ExerciseCardProps) => {
   const completedSets = exercise.sets.filter(set => set.completed).length
   const totalSets = exercise.sets.length
 

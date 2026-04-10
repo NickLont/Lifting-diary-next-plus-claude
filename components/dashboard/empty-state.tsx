@@ -5,7 +5,7 @@ interface EmptyStateProps {
   date: Date
 }
 
-export function EmptyState ({ date }: EmptyStateProps) {
+export const EmptyState = ({ date }: EmptyStateProps) => {
   return (
     <div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
       <CalendarX className='h-12 w-12 text-muted-foreground mb-4' />

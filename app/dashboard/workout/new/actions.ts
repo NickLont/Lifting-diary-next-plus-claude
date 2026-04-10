@@ -12,7 +12,7 @@ const createWorkoutSchema = z.object({
 
 export type CreateWorkoutInput = z.infer<typeof createWorkoutSchema>
 
-export async function createWorkoutAction (input: CreateWorkoutInput) {
+export const createWorkoutAction = async (input: CreateWorkoutInput) => {
   const parsed = createWorkoutSchema.safeParse(input)
   if (!parsed.success) throw new Error('Invalid input')
 

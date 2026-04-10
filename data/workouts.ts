@@ -12,7 +12,7 @@ import { getStartOfDay, getEndOfDay } from '@/lib/date-utils'
  * @param date - The date to fetch workouts for
  * @returns Array of workouts with all relations (exercises and sets)
  */
-export async function getUserWorkoutsByDate (date: Date) {
+export const getUserWorkoutsByDate = async (date: Date) => {
   const { userId } = await auth()
   if (!userId) throw new Error('Unauthorized')
 
@@ -49,7 +49,7 @@ export type WorkoutWithRelations = Awaited<ReturnType<typeof getUserWorkoutsByDa
 
 type CreateWorkoutInput = Omit<InsertWorkout, 'userId' | 'id' | 'createdAt' | 'updatedAt'>
 
-export async function createWorkout (input: CreateWorkoutInput) {
+export const createWorkout = async (input: CreateWorkoutInput) => {
   const { userId } = await auth()
   if (!userId) throw new Error('Unauthorized')
 

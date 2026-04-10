@@ -1,7 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
-export default function DashboardLoading () {
+const DashboardLoading = () => {
   return (
     <div className='container mx-auto px-4 py-8 max-w-4xl'>
       <header className='mb-8'>
@@ -44,3 +44,5 @@ export default function DashboardLoading () {
     </div>
   )
 }
+
+export default DashboardLoading

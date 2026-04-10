@@ -7,7 +7,7 @@ import { getStartOfDay, getEndOfDay } from '@/lib/date-utils'
  * Fetch all workouts for a user on a specific date, with all related data
  * Uses a single query with relations to avoid N+1 problems
  */
-export async function getWorkoutsByDateAndUser (userId: string, date: Date) {
+export const getWorkoutsByDateAndUser = async (userId: string, date: Date) => {
   const startOfDayDate = getStartOfDay(date)
   const endOfDayDate = getEndOfDay(date)
 

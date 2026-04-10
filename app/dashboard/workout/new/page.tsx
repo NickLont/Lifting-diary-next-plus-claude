@@ -6,7 +6,7 @@ import { createWorkoutAction } from './actions'
 
 export const metadata = { title: 'New Workout - Lifting Diary' }
 
-export default async function NewWorkoutPage () {
+const NewWorkoutPage = async () => {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
@@ -24,3 +24,5 @@ export default async function NewWorkoutPage () {
     </div>
   )
 }
+
+export default NewWorkoutPage

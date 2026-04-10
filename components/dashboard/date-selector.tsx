@@ -13,7 +13,7 @@ interface DateSelectorProps {
   currentDate: Date
 }
 
-export function DateSelector ({ currentDate }: DateSelectorProps) {
+export const DateSelector = ({ currentDate }: DateSelectorProps) => {
   const [open, setOpen] = useState(false)
   const router = useRouter()
 

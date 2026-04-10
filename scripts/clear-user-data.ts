@@ -8,7 +8,7 @@ import { db } from '@/app/index'
 import { exercisesTable, workoutsTable, workoutExercisesTable, setsTable } from '@/app/db/schema'
 import { eq, inArray } from 'drizzle-orm'
 
-async function clearUserData (userId: string) {
+const clearUserData = async (userId: string) => {
   try {
     console.log(`🗑️  Clearing all data for user: ${userId}`)
 

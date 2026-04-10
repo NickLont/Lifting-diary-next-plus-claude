@@ -8,7 +8,7 @@ import 'dotenv/config'
 import { db } from '@/app/index'
 import { exercisesTable, workoutsTable, workoutExercisesTable, setsTable } from '@/app/db/schema'
 
-async function clearAllData () {
+const clearAllData = async () => {
   try {
     console.log('🗑️  Clearing all data from database...')
 

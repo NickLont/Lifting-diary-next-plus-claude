@@ -10,7 +10,7 @@ interface ErrorStateProps {
   onRetry?: () => void
 }
 
-export function ErrorState ({ message, onRetry }: ErrorStateProps) {
+export const ErrorState = ({ message, onRetry }: ErrorStateProps) => {
   const router = useRouter()
 
   const handleRetry = () => {

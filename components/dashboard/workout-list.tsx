@@ -8,7 +8,7 @@ interface WorkoutListProps {
   date: Date
 }
 
-export function WorkoutList ({ workouts, date }: WorkoutListProps) {
+export const WorkoutList = ({ workouts, date }: WorkoutListProps) => {
   if (workouts.length === 0) {
     return <EmptyState date={date} />
   }

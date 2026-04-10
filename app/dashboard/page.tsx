@@ -14,7 +14,7 @@ export const metadata = {
   title: 'Dashboard - Lifting Diary',
 }
 
-export default async function DashboardPage ({ searchParams }: PageProps) {
+const DashboardPage = async ({ searchParams }: PageProps) => {
   // Check authentication (defensive layer)
   const { userId } = await auth()
   if (!userId) {
@@ -54,3 +54,5 @@ export default async function DashboardPage ({ searchParams }: PageProps) {
     </div>
   )
 }
+
+export default DashboardPage

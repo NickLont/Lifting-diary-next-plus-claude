@@ -7,7 +7,7 @@ interface WorkoutCardProps {
   workout: WorkoutWithRelations
 }
 
-function getStatusVariant (status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
     case 'completed':
       return 'default'
@@ -20,7 +20,7 @@ function getStatusVariant (status: string): 'default' | 'secondary' | 'destructi
   }
 }
 
-function formatWorkoutTime (startedAt: Date | null, completedAt: Date | null): string {
+const formatWorkoutTime = (startedAt: Date | null, completedAt: Date | null): string => {
   if (completedAt) {
     return format(completedAt, 'h:mm a')
   }
@@ -30,7 +30,7 @@ function formatWorkoutTime (startedAt: Date | null, completedAt: Date | null): s
   return 'No time recorded'
 }
 
-export function WorkoutCard ({ workout }: WorkoutCardProps) {
+export const WorkoutCard = ({ workout }: WorkoutCardProps) => {
   const totalSets = workout.workoutExercises.reduce(
     (sum: number, we) => sum + we.sets.length,
     0
