@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/app/index'
 import { workoutsTable, workoutExercisesTable, setsTable } from '@/app/db/schema'
-import type { InsertWorkout } from '@/app/db/schema'
+import type { InsertWorkout, InsertWorkoutExercise, InsertSet } from '@/app/db/schema'
 import { and, eq, gte, lt, desc, asc } from 'drizzle-orm'
 import { getStartOfDay, getEndOfDay } from '@/lib/date-utils'
 
@@ -59,4 +59,50 @@ export const createWorkout = async (input: CreateWorkoutInput) => {
     .returning()
 
   return workout
+}
+
+type CreateSetInput = Omit<InsertSet, 'id' | 'workoutExerciseId' | 'createdAt' | 'updatedAt'>
+
+type CreateWorkoutExerciseInput = Omit<InsertWorkoutExercise, 'id' | 'workoutId' | 'createdAt' | 'updatedAt'> & {
+  sets: CreateSetInput[]
+}
+
+export type CreateWorkoutWithExercisesInput = CreateWorkoutInput & {
+  exercises: CreateWorkoutExerciseInput[]
+}
+
+export const createWorkoutWithExercises = async (input: CreateWorkoutWithExercisesInput) => {
+  const { userId } = await auth()
+  if (!userId) throw new Error('Unauthorized')
+
+  return db.transaction(async (tx) => {
+    const [workout] = await tx
+      .insert(workoutsTable)
+      .values({ userId, name: input.name, workoutDate: input.workoutDate, status: input.status, startedAt: input.startedAt ?? undefined, completedAt: input.completedAt ?? undefined })
+      .returning()
+
+    for (const exercise of input.exercises) {
+      const [workoutExercise] = await tx
+        .insert(workoutExercisesTable)
+        .values({
+          workoutId: workout.id,
+          exerciseId: exercise.exerciseId,
+          orderIndex: exercise.orderIndex,
+          targetSets: exercise.targetSets,
+          targetReps: exercise.targetReps,
+          targetWeight: exercise.targetWeight,
+          restTime: exercise.restTime,
+          notes: exercise.notes,
+        })
+        .returning()
+
+      if (exercise.sets.length > 0) {
+        await tx.insert(setsTable).values(
+          exercise.sets.map((set) => ({ ...set, workoutExerciseId: workoutExercise.id }))
+        )
+      }
+    }
+
+    return workout
+  })
 }
