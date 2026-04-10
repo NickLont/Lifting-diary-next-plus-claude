@@ -61,6 +61,24 @@ export const createWorkout = async (input: CreateWorkoutInput) => {
   return workout
 }
 
+export const getUserWorkoutDatesInRange = async (start: Date, end: Date): Promise<Date[]> => {
+  const { userId } = await auth()
+  if (!userId) throw new Error('Unauthorized')
+
+  const rows = await db
+    .select({ workoutDate: workoutsTable.workoutDate })
+    .from(workoutsTable)
+    .where(and(eq(workoutsTable.userId, userId), gte(workoutsTable.workoutDate, start), lt(workoutsTable.workoutDate, end)))
+
+  // Deduplicate to one Date per calendar day
+  const seen = new Map<string, Date>()
+  for (const row of rows) {
+    const key = row.workoutDate.toISOString().slice(0, 10)
+    if (!seen.has(key)) seen.set(key, row.workoutDate)
+  }
+  return Array.from(seen.values())
+}
+
 type CreateSetInput = Omit<InsertSet, 'id' | 'workoutExerciseId' | 'createdAt' | 'updatedAt'>
 
 type CreateWorkoutExerciseInput = Omit<InsertWorkoutExercise, 'id' | 'workoutId' | 'createdAt' | 'updatedAt'> & {

@@ -6,15 +6,18 @@ import { buttonVariants } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useRouter } from 'next/navigation'
-import { formatDate, getDateString } from '@/lib/date-utils'
+import { formatDate, getDateString, getStartOfMonth, getEndOfMonth } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
+import { getWorkoutDatesAction } from '@/app/dashboard/actions'
 
 interface DateSelectorProps {
   currentDate: Date
+  workoutDates: Date[]
 }
 
-export const DateSelector = ({ currentDate }: DateSelectorProps) => {
+export const DateSelector = ({ currentDate, workoutDates: initialWorkoutDates }: DateSelectorProps) => {
   const [open, setOpen] = useState(false)
+  const [workoutDates, setWorkoutDates] = useState<Date[]>(initialWorkoutDates)
   const router = useRouter()
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -23,6 +26,14 @@ export const DateSelector = ({ currentDate }: DateSelectorProps) => {
       router.push(`/dashboard?date=${dateString}`)
       setOpen(false)
     }
+  }
+
+  const handleMonthChange = async (month: Date) => {
+    const dates = await getWorkoutDatesAction({
+      start: getStartOfMonth(month),
+      end: getEndOfMonth(month),
+    })
+    setWorkoutDates(dates)
   }
 
   return (
@@ -36,6 +47,8 @@ export const DateSelector = ({ currentDate }: DateSelectorProps) => {
           mode='single'
           selected={currentDate}
           onSelect={handleDateSelect}
+          onMonthChange={handleMonthChange}
+          modifiers={{ hasWorkout: workoutDates }}
         />
       </PopoverContent>
     </Popover>

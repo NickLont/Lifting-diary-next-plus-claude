@@ -185,6 +185,7 @@ function CalendarDayButton ({
   day,
   modifiers,
   locale,
+  children,
   ...props
 }: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
   const defaultClassNames = getDefaultClassNames()
@@ -214,7 +215,16 @@ function CalendarDayButton ({
         className
       )}
       {...props}
-    />
+    >
+      {children}
+      {modifiers.hasWorkout && (
+        <span className={cn(
+          'absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full',
+          modifiers.selected ? 'bg-primary-foreground' : 'bg-primary'
+        )}
+        />
+      )}
+    </Button>
   )
 }
 

@@ -1,4 +1,4 @@
-import { format, parseISO, isValid, startOfDay, endOfDay } from 'date-fns'
+import { format, parseISO, isValid, startOfDay, endOfDay, startOfMonth, endOfMonth } from 'date-fns'
 
 /**
  * Format date as "March 20, 2026"
@@ -56,3 +56,7 @@ export const getStartOfDay = (date: Date): Date => {
 export const getEndOfDay = (date: Date): Date => {
   return endOfDay(date)
 }
+
+export const getStartOfMonth = (date: Date): Date => startOfMonth(date)
+
+export const getEndOfMonth = (date: Date): Date => endOfMonth(date)
