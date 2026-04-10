@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/app/index'
 import { workoutsTable, workoutExercisesTable, setsTable } from '@/app/db/schema'
+import type { InsertWorkout } from '@/app/db/schema'
 import { and, eq, gte, lt, desc, asc } from 'drizzle-orm'
 import { getStartOfDay, getEndOfDay } from '@/lib/date-utils'
 
@@ -45,3 +46,17 @@ export async function getUserWorkoutsByDate (date: Date) {
  * Type for workout with all relations (exercises and sets)
  */
 export type WorkoutWithRelations = Awaited<ReturnType<typeof getUserWorkoutsByDate>>[number]
+
+type CreateWorkoutInput = Omit<InsertWorkout, 'userId' | 'id' | 'createdAt' | 'updatedAt'>
+
+export async function createWorkout (input: CreateWorkoutInput) {
+  const { userId } = await auth()
+  if (!userId) throw new Error('Unauthorized')
+
+  const [workout] = await db
+    .insert(workoutsTable)
+    .values({ ...input, userId })
+    .returning()
+
+  return workout
+}
