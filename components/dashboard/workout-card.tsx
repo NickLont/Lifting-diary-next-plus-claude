@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { WorkoutWithRelations } from '@/data/workouts'
@@ -37,36 +38,38 @@ export const WorkoutCard = ({ workout }: WorkoutCardProps) => {
   )
 
   return (
-    <Card>
-      <CardHeader>
-        <div className='flex items-start justify-between'>
-          <div>
-            <CardTitle className='text-xl'>{workout.name}</CardTitle>
-            <p className='text-sm text-muted-foreground mt-1'>
-              {formatWorkoutTime(workout.startedAt, workout.completedAt)}
-            </p>
+    <Link href={`/dashboard/workout/${workout.id}`} className='block transition-transform hover:-translate-y-0.5 hover:shadow-md rounded-xl'>
+      <Card>
+        <CardHeader>
+          <div className='flex items-start justify-between'>
+            <div>
+              <CardTitle className='text-xl'>{workout.name}</CardTitle>
+              <p className='text-sm text-muted-foreground mt-1'>
+                {formatWorkoutTime(workout.startedAt, workout.completedAt)}
+              </p>
+            </div>
+            <Badge variant={getStatusVariant(workout.status)}>
+              {workout.status.replace('_', ' ')}
+            </Badge>
           </div>
-          <Badge variant={getStatusVariant(workout.status)}>
-            {workout.status.replace('_', ' ')}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className='flex gap-4 text-sm'>
-          <div>
-            <span className='font-semibold'>{workout.workoutExercises.length}</span>
-            <span className='text-muted-foreground ml-1'>
-              {workout.workoutExercises.length === 1 ? 'exercise' : 'exercises'}
-            </span>
+        </CardHeader>
+        <CardContent>
+          <div className='flex gap-4 text-sm'>
+            <div>
+              <span className='font-semibold'>{workout.workoutExercises.length}</span>
+              <span className='text-muted-foreground ml-1'>
+                {workout.workoutExercises.length === 1 ? 'exercise' : 'exercises'}
+              </span>
+            </div>
+            <div>
+              <span className='font-semibold'>{totalSets}</span>
+              <span className='text-muted-foreground ml-1'>
+                {totalSets === 1 ? 'set' : 'sets'}
+              </span>
+            </div>
           </div>
-          <div>
-            <span className='font-semibold'>{totalSets}</span>
-            <span className='text-muted-foreground ml-1'>
-              {totalSets === 1 ? 'set' : 'sets'}
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }

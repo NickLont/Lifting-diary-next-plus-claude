@@ -1,6 +1,5 @@
 import type { WorkoutWithRelations } from '@/data/workouts'
 import { WorkoutCard } from './workout-card'
-import { ExerciseCard } from './exercise-card'
 import { EmptyState } from './empty-state'
 
 interface WorkoutListProps {
@@ -45,25 +44,9 @@ export const WorkoutList = ({ workouts, date }: WorkoutListProps) => {
         </div>
       </div>
 
-      <div className='space-y-6'>
+      <div className='space-y-4'>
         {workouts.map((workout) => (
-          <div key={workout.id} className='space-y-3'>
-            <WorkoutCard workout={workout} />
-            {workout.workoutExercises.length > 0 && (
-              <div className='ml-4 space-y-2'>
-                {workout.workoutExercises.map((we) => (
-                  <ExerciseCard
-                    key={we.id}
-                    exercise={{
-                      id: we.exercise.id,
-                      name: we.exercise.name,
-                      sets: we.sets
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <WorkoutCard key={workout.id} workout={workout} />
         ))}
       </div>
     </div>

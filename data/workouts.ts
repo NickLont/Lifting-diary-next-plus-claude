@@ -70,13 +70,96 @@ export const getUserWorkoutDatesInRange = async (start: Date, end: Date): Promis
     .from(workoutsTable)
     .where(and(eq(workoutsTable.userId, userId), gte(workoutsTable.workoutDate, start), lt(workoutsTable.workoutDate, end)))
 
-  // Deduplicate to one Date per calendar day
+  // Deduplicate to one Date per calendar day using local date
   const seen = new Map<string, Date>()
   for (const row of rows) {
-    const key = row.workoutDate.toISOString().slice(0, 10)
-    if (!seen.has(key)) seen.set(key, row.workoutDate)
+    const d = row.workoutDate
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+    if (!seen.has(key)) seen.set(key, d)
   }
   return Array.from(seen.values())
+}
+
+export const getWorkoutById = async (id: number): Promise<WorkoutWithRelations | null> => {
+  const { userId } = await auth()
+  if (!userId) throw new Error('Unauthorized')
+
+  const workout = await db.query.workoutsTable.findFirst({
+    where: and(eq(workoutsTable.id, id), eq(workoutsTable.userId, userId)),
+    with: {
+      workoutExercises: {
+        orderBy: asc(workoutExercisesTable.orderIndex),
+        with: {
+          exercise: true,
+          sets: { orderBy: asc(setsTable.setNumber) },
+        },
+      },
+    },
+  })
+
+  return workout ?? null
+}
+
+export const updateWorkoutWithExercises = async (
+  workoutId: number,
+  input: CreateWorkoutWithExercisesInput
+): Promise<void> => {
+  const { userId } = await auth()
+  if (!userId) throw new Error('Unauthorized')
+
+  await db.transaction(async (tx) => {
+    const existing = await tx.query.workoutsTable.findFirst({
+      where: eq(workoutsTable.id, workoutId),
+    })
+    if (!existing || existing.userId !== userId) throw new Error('Unauthorized')
+
+    await tx.update(workoutsTable)
+      .set({
+        name: input.name,
+        workoutDate: input.workoutDate,
+        status: input.status,
+        startedAt: input.startedAt ?? null,
+        completedAt: input.completedAt ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(workoutsTable.id, workoutId))
+
+    await tx.delete(workoutExercisesTable).where(eq(workoutExercisesTable.workoutId, workoutId))
+
+    for (const exercise of input.exercises) {
+      const [we] = await tx
+        .insert(workoutExercisesTable)
+        .values({
+          workoutId,
+          exerciseId: exercise.exerciseId,
+          orderIndex: exercise.orderIndex,
+          targetSets: exercise.targetSets,
+          targetReps: exercise.targetReps,
+          targetWeight: exercise.targetWeight,
+          restTime: exercise.restTime,
+          notes: exercise.notes,
+        })
+        .returning()
+
+      if (exercise.sets.length > 0) {
+        await tx.insert(setsTable).values(
+          exercise.sets.map(set => ({ ...set, workoutExerciseId: we.id }))
+        )
+      }
+    }
+  })
+}
+
+export const deleteWorkout = async (workoutId: number): Promise<void> => {
+  const { userId } = await auth()
+  if (!userId) throw new Error('Unauthorized')
+
+  const existing = await db.query.workoutsTable.findFirst({
+    where: eq(workoutsTable.id, workoutId),
+  })
+  if (!existing || existing.userId !== userId) throw new Error('Unauthorized')
+
+  await db.delete(workoutsTable).where(eq(workoutsTable.id, workoutId))
 }
 
 type CreateSetInput = Omit<InsertSet, 'id' | 'workoutExerciseId' | 'createdAt' | 'updatedAt'>

@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "agent",
+            "if": "Write(/docs/*)",
+            "prompt": "A file was just written to the /docs directory. The tool input is: $ARGUMENTS\n\nYour job (docs-reference-updater):\n1. Extract the file path from the tool input JSON (field: file_path)\n2. Check if it ends with .md — if not, do nothing and stop\n3. Derive the filename (e.g. 'api-design.md' from '/path/docs/api-design.md')\n4. Read CLAUDE.md at /Users/lontonic/Desktop/Personal/learn_claude/lifting_diary/CLAUDE.md\n5. Check if the filename is already referenced anywhere in CLAUDE.md — if it is, do nothing and stop\n6. If not referenced, add a new bullet line to the 'Required reading before writing code' section, in the same format as the existing entries (e.g. `- **`/docs/api-design.md`** - <brief description inferred from the filename>`)\n7. Insert it alphabetically among the existing doc references\n\nOnly edit CLAUDE.md. Do not touch any other file.",
+            "statusMessage": "Checking docs reference in CLAUDE.md...",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

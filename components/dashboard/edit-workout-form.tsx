@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { Calendar as CalendarIcon, Plus, Trash2, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -12,9 +12,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import type { CreateWorkoutInput } from '@/app/dashboard/workout/new/actions'
+import type { WorkoutWithRelations } from '@/data/workouts'
 import type { ExerciseOption } from '@/data/exercises'
+import type { UpdateWorkoutInput } from '@/app/dashboard/workout/[workoutId]/actions'
+import { updateWorkoutAction, deleteWorkoutAction } from '@/app/dashboard/workout/[workoutId]/actions'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -45,8 +48,8 @@ type ExerciseDraft = {
 }
 
 type Props = {
+  workout: WorkoutWithRelations
   exercises: ExerciseOption[]
-  onSubmit: (input: CreateWorkoutInput) => Promise<{ date: string }>
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -69,6 +72,31 @@ const emptySet = (setNumber: number): SetDraft => ({
 
 const parseOptionalInt = (v: string) => v.trim() !== '' ? parseInt(v, 10) : undefined
 const parseOptionalStr = (v: string) => v.trim() !== '' ? v.trim() : undefined
+
+const toExerciseDrafts = (workout: WorkoutWithRelations): ExerciseDraft[] =>
+  workout.workoutExercises.map(we => ({
+    exerciseId: we.exerciseId,
+    orderIndex: we.orderIndex,
+    targetSets: we.targetSets?.toString() ?? '',
+    targetReps: we.targetReps?.toString() ?? '',
+    targetWeight: we.targetWeight ?? '',
+    restTime: we.restTime?.toString() ?? '',
+    notes: we.notes ?? '',
+    expanded: false,
+    sets: we.sets.map(s => ({
+      setNumber: s.setNumber,
+      reps: s.reps?.toString() ?? '',
+      weight: s.weight ?? '',
+      duration: s.duration?.toString() ?? '',
+      distance: s.distance ?? '',
+      rpe: s.rpe?.toString() ?? '',
+      isWarmup: s.isWarmup,
+      isDropSet: s.isDropSet,
+      isFailure: s.isFailure,
+      completed: s.completed,
+      notes: s.notes ?? '',
+    })),
+  }))
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -255,7 +283,6 @@ const ExerciseBlock = ({
 
       {draft.expanded && (
         <div className='space-y-4'>
-          {/* Exercise picker */}
           <div className='space-y-1.5'>
             <Label className='text-xs'>Exercise <span className='text-destructive'>*</span></Label>
             <Popover open={comboOpen} onOpenChange={setComboOpen}>
@@ -307,7 +334,6 @@ const ExerciseBlock = ({
             </Popover>
           </div>
 
-          {/* Exercise-level targets */}
           <div className='grid grid-cols-2 gap-2'>
             <div className='space-y-1'>
               <Label className='text-xs'>Target sets <span className='text-muted-foreground font-normal'>(optional)</span></Label>
@@ -365,7 +391,6 @@ const ExerciseBlock = ({
             />
           </div>
 
-          {/* Sets */}
           <div className='space-y-2'>
             <span className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>Sets</span>
             {draft.sets.map((set, i) => (
@@ -390,15 +415,22 @@ const ExerciseBlock = ({
 
 // ─── Main form ────────────────────────────────────────────────────────────────
 
-export const CreateWorkoutForm = ({ exercises, onSubmit }: Props) => {
+export const EditWorkoutForm = ({ workout, exercises }: Props) => {
   const router = useRouter()
+  const params = useParams()
+  const workoutId = parseInt(params.workoutId as string, 10)
   const [isPending, startTransition] = useTransition()
-  const [name, setName] = useState('')
-  const [workoutDate, setWorkoutDate] = useState<Date>(new Date())
-  const [status, setStatus] = useState<CreateWorkoutInput['status']>('planned')
+  const [name, setName] = useState(workout.name)
+  const [workoutDate, setWorkoutDate] = useState<Date>(workout.workoutDate)
+  const [status, setStatus] = useState<UpdateWorkoutInput['status']>(
+    workout.status as UpdateWorkoutInput['status']
+  )
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES)
-  const [exerciseDrafts, setExerciseDrafts] = useState<ExerciseDraft[]>([])
+  const [exerciseDrafts, setExerciseDrafts] = useState<ExerciseDraft[]>(
+    () => toExerciseDrafts(workout)
+  )
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const categories = Array.from(new Set(exercises.map(e => e.category).filter(Boolean))) as string[]
@@ -442,7 +474,7 @@ export const CreateWorkoutForm = ({ exercises, onSubmit }: Props) => {
 
     startTransition(async () => {
       try {
-        const result = await onSubmit({
+        await updateWorkoutAction(workoutId, {
           name,
           workoutDate,
           status,
@@ -469,129 +501,165 @@ export const CreateWorkoutForm = ({ exercises, onSubmit }: Props) => {
             })),
           })),
         })
-        router.push(`/dashboard?date=${result.date}`)
       } catch {
-        setError('Failed to create workout. Please try again.')
+        setError('Failed to save workout. Please try again.')
+      }
+    })
+  }
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      try {
+        await deleteWorkoutAction(workoutId)
+      } catch {
+        setDeleteOpen(false)
+        setError('Failed to delete workout. Please try again.')
       }
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-6'>
-      {/* Workout fields */}
-      <div className='space-y-4'>
-        <div className='space-y-1.5'>
-          <Label htmlFor='name'>Name <span className='text-destructive'>*</span></Label>
-          <Input
-            id='name'
-            placeholder='e.g. Morning Chest Day'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={isPending}
-          />
-        </div>
-
-        <div className='space-y-1.5'>
-          <Label>Date <span className='text-destructive'>*</span></Label>
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-            <PopoverTrigger
-              className={cn(buttonVariants({ variant: 'outline' }), 'w-full justify-start text-left font-normal')}
+    <>
+      <form onSubmit={handleSubmit} className='space-y-6'>
+        <div className='space-y-4'>
+          <div className='space-y-1.5'>
+            <Label htmlFor='name'>Name <span className='text-destructive'>*</span></Label>
+            <Input
+              id='name'
+              placeholder='e.g. Morning Chest Day'
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
               disabled={isPending}
-            >
-              <CalendarIcon className='mr-2 h-4 w-4' />
-              {format(workoutDate, 'MMMM d, yyyy')}
-            </PopoverTrigger>
-            <PopoverContent className='w-auto p-0' align='start'>
-              <Calendar
-                mode='single'
-                selected={workoutDate}
-                onSelect={(date) => {
-                  if (date) {
-                    setWorkoutDate(date)
-                    setCalendarOpen(false)
-                  }
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+            />
+          </div>
 
-        <div className='space-y-1.5'>
-          <Label>Status <span className='text-destructive'>*</span></Label>
-          <Select value={status} onValueChange={(v) => setStatus(v as CreateWorkoutInput['status'])}>
-            <SelectTrigger disabled={isPending} className='w-full'>
-              <SelectValue placeholder='Select status' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='planned'>Planned</SelectItem>
-              <SelectItem value='in_progress'>In Progress</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+          <div className='space-y-1.5'>
+            <Label>Date <span className='text-destructive'>*</span></Label>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger
+                className={cn(buttonVariants({ variant: 'outline' }), 'w-full justify-start text-left font-normal')}
+                disabled={isPending}
+              >
+                <CalendarIcon className='mr-2 h-4 w-4' />
+                {format(workoutDate, 'MMMM d, yyyy')}
+              </PopoverTrigger>
+              <PopoverContent className='w-auto p-0' align='start'>
+                <Calendar
+                  mode='single'
+                  selected={workoutDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setWorkoutDate(date)
+                      setCalendarOpen(false)
+                    }
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-      {/* Exercises */}
-      <div className='space-y-3'>
-        <div className='flex items-center justify-between'>
-          <span className='font-medium'>Exercises</span>
-          {categories.length > 0 && (
-            <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v ?? ALL_CATEGORIES)}>
-              <SelectTrigger className='w-36 h-8 text-sm'>
-                <SelectValue placeholder='All categories' />
+          <div className='space-y-1.5'>
+            <Label>Status <span className='text-destructive'>*</span></Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as UpdateWorkoutInput['status'])}>
+              <SelectTrigger disabled={isPending} className='w-full'>
+                <SelectValue placeholder='Select status' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_CATEGORIES}>All categories</SelectItem>
-                {categories.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
+                <SelectItem value='planned'>Planned</SelectItem>
+                <SelectItem value='in_progress'>In Progress</SelectItem>
+                <SelectItem value='completed'>Completed</SelectItem>
+                <SelectItem value='cancelled'>Cancelled</SelectItem>
               </SelectContent>
             </Select>
-          )}
+          </div>
         </div>
 
-        {exerciseDrafts.map((draft, i) => (
-          <ExerciseBlock
-            key={i}
-            draft={draft}
-            exercises={exercises}
-            categoryFilter={categoryFilter}
-            onChange={(updated) => updateExercise(i, updated)}
-            onRemove={() => removeExercise(i)}
-          />
-        ))}
+        <div className='space-y-3'>
+          <div className='flex items-center justify-between'>
+            <span className='font-medium'>Exercises</span>
+            {categories.length > 0 && (
+              <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v ?? ALL_CATEGORIES)}>
+                <SelectTrigger className='w-36 h-8 text-sm'>
+                  <SelectValue placeholder='All categories' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_CATEGORIES}>All categories</SelectItem>
+                  {categories.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
 
-        <Button
-          type='button'
-          variant='outline'
-          className='w-full'
-          disabled={isPending}
-          onClick={addExercise}
-        >
-          <Plus className='h-4 w-4 mr-2' /> Add exercise
-        </Button>
-      </div>
+          {exerciseDrafts.map((draft, i) => (
+            <ExerciseBlock
+              key={i}
+              draft={draft}
+              exercises={exercises}
+              categoryFilter={categoryFilter}
+              onChange={(updated) => updateExercise(i, updated)}
+              onRemove={() => removeExercise(i)}
+            />
+          ))}
 
-      {error && <p className='text-sm text-destructive'>{error}</p>}
+          <Button
+            type='button'
+            variant='outline'
+            className='w-full'
+            disabled={isPending}
+            onClick={addExercise}
+          >
+            <Plus className='h-4 w-4 mr-2' /> Add exercise
+          </Button>
+        </div>
 
-      <div className='flex gap-2 pt-2'>
-        <Button
-          type='button'
-          variant='outline'
-          className='flex-1'
-          disabled={isPending}
-          onClick={() => router.push('/dashboard')}
-        >
-          Cancel
-        </Button>
-        <Button
-          type='submit'
-          className='flex-1'
-          disabled={isPending || !name.trim()}
-        >
-          {isPending ? 'Creating...' : 'Create Workout'}
-        </Button>
-      </div>
-    </form>
+        {error && <p className='text-sm text-destructive'>{error}</p>}
+
+        <div className='flex gap-2 pt-2'>
+          <Button
+            type='button'
+            variant='destructive'
+            disabled={isPending}
+            onClick={() => setDeleteOpen(true)}
+          >
+            Delete
+          </Button>
+          <div className='flex-1' />
+          <Button
+            type='button'
+            variant='outline'
+            disabled={isPending}
+            onClick={() => router.push('/dashboard')}
+          >
+            Cancel
+          </Button>
+          <Button
+            type='submit'
+            disabled={isPending || !name.trim()}
+          >
+            {isPending ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </form>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete workout?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete &quot;{workout.name}&quot; and all its exercises and sets. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant='outline' />}>Cancel</DialogClose>
+            <Button variant='destructive' disabled={isPending} onClick={handleDelete}>
+              {isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

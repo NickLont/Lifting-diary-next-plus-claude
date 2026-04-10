@@ -2,8 +2,8 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { format } from 'date-fns'
-import { createWorkoutWithExercises } from '@/data/workouts'
+import { redirect } from 'next/navigation'
+import { updateWorkoutWithExercises, deleteWorkout } from '@/data/workouts'
 
 const setSchema = z.object({
   setNumber: z.number().int().positive(),
@@ -30,7 +30,7 @@ const workoutExerciseSchema = z.object({
   sets: z.array(setSchema).min(1),
 })
 
-const createWorkoutSchema = z.object({
+const updateWorkoutSchema = z.object({
   name: z.string().min(1).max(255),
   workoutDate: z.coerce.date(),
   status: z.enum(['planned', 'in_progress', 'completed', 'cancelled']),
@@ -39,14 +39,19 @@ const createWorkoutSchema = z.object({
   exercises: z.array(workoutExerciseSchema),
 })
 
-export type CreateWorkoutInput = z.infer<typeof createWorkoutSchema>
+export type UpdateWorkoutInput = z.infer<typeof updateWorkoutSchema>
 
-export const createWorkoutAction = async (input: CreateWorkoutInput): Promise<{ date: string }> => {
-  const parsed = createWorkoutSchema.safeParse(input)
+export const updateWorkoutAction = async (workoutId: number, input: UpdateWorkoutInput) => {
+  const parsed = updateWorkoutSchema.safeParse(input)
   if (!parsed.success) throw new Error('Invalid input')
 
-  await createWorkoutWithExercises(parsed.data)
+  await updateWorkoutWithExercises(workoutId, parsed.data)
+  revalidatePath(`/dashboard/workout/${workoutId}`)
   revalidatePath('/dashboard')
+}
 
-  return { date: format(parsed.data.workoutDate, 'yyyy-MM-dd') }
+export const deleteWorkoutAction = async (workoutId: number) => {
+  await deleteWorkout(workoutId)
+  revalidatePath('/dashboard')
+  redirect('/dashboard')
 }

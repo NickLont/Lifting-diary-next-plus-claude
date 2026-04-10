@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`/docs/data-mutations.md`** - Data mutation patterns (Server Actions in colocated `actions.ts`, data layer in `/data`, Drizzle ORM, Zod validation)
 - **`/docs/auth.md`** - Authentication standards (Clerk only, `ClerkProvider`, `auth()`, Clerk UI components)
 - **`/docs/code-styling.md`** - Code style standards
+- **`/docs/routing.md`** - Route protection standards (middleware-only, protected routes under `/dashboard`)
 
 ## Development Workflow
 
